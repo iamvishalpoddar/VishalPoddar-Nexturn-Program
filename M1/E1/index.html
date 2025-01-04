@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List Application</title>
+    <link rel="stylesheet" href="styles.css">
+
+</head>
+<body>
+    <div class="todo-container">
+        <div class="todo-header">To-Do List</div>
+        <input type="text" id="taskInput" class="todo-input" placeholder="Enter a new task">
+        <ul id="todoList" class="todo-list"></ul>
+        <div class="task-counter">Pending tasks: <span id="taskCount">0</span></div>
+    </div>
+
+    <script>
+        const taskInput = document.getElementById('taskInput');
+        const todoList = document.getElementById('todoList');
+        const taskCount = document.getElementById('taskCount');
+
+        let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+
+        function updateTaskCount() {
+            const pendingTasks = tasks.filter(task => !task.completed).length;
+            taskCount.textContent = pendingTasks;
+        }
+
+        function saveTasks() {
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
+
+        function renderTasks() {
+            todoList.innerHTML = '';
+            tasks.forEach((task, index) => {
+                const li = document.createElement('li');
+                li.className = `todo-item ${task.completed ? 'completed' : ''}`;
+                li.innerHTML = `
+                    <span>${task.name}</span>
+                    <div class="todo-actions">
+                        <button class="complete-btn" onclick="toggleComplete(${index})">✔</button>
+                        <button class="edit-btn" onclick="editTask(${index})">✎</button>
+                        <button class="delete-btn" onclick="deleteTask(${index})">✘</button>
+                    </div>
+                `;
+                todoList.appendChild(li);
+            });
+            updateTaskCount();
+        }
+
+        function addTask(name) {
+            if (name.trim()) {
+                tasks.push({ name, completed: false });
+                saveTasks();
+                renderTasks();
+                taskInput.value = '';
+            }
+        }
+
+        function toggleComplete(index) {
+            tasks[index].completed = !tasks[index].completed;
+            saveTasks();
+            renderTasks();
+        }
+
+        function editTask(index) {
+            const newName = prompt('Edit task:', tasks[index].name);
+            if (newName !== null && newName.trim()) {
+                tasks[index].name = newName.trim();
+                saveTasks();
+                renderTasks();
+            }
+        }
+
+        function deleteTask(index) {
+            tasks.splice(index, 1);
+            saveTasks();
+            renderTasks();
+        }
+
+        taskInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                addTask(taskInput.value);
+            }
+        });
+
+        renderTasks();
+    </script>
+</body>
+</html>
